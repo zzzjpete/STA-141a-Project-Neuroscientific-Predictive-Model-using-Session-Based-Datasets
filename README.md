@@ -31,15 +31,18 @@ This project uses a subset of data from Steinmetz et al. (2019), consisting of 1
 - Cumulative feedback across trials to assess learning behavior
 - Homogeneity/heterogeneity analysis of trial outcomes and contrast conditions across mice
 
-**2. Data Integration**
+**2. Data Integration & Clustering**
 - Extracted 5 features per trial: `contrast_left`, `contrast_right`, `spks_mean`, `spks_sd`, `total_neurons`
-- Applied K-means clustering (k=6, selected via elbow method) to identify shared patterns across sessions
-- Performed PCA for dimensionality reduction and cluster visualization
+- Features standardized via z-score scaling before clustering
+- Applied **K-means clustering** (k=6, selected via elbow method on within-group sum of squares across k=1–15) to group trials with shared neural and stimulus patterns across sessions
+- Applied **PCA** on the scaled feature matrix; first two principal components used for 2D cluster visualization via `fviz_cluster`
 
 **3. Predictive Model**
-- Logistic regression (`glm`) trained on a 75/25 train-test split
-- Features: `contrast_right`, `spks_mean`, `spks_sd`, and `spks_mean × spks_sd` interaction term
-- Evaluated on internal test split and two held-out external test sets
+- Target variable: `feedback_type` (1 = success, -1 = failure)
+- Model: **Logistic regression** fit with `glm(..., family = "gaussian")` on a stratified 75/25 train-test split using `sample.split()`
+- Features: `contrast_right`, `spks_mean`, `spks_sd`, and a `spks_mean × spks_sd` interaction term to capture joint effects of spike rate and variability
+- Decision threshold set at 0.6 (predict -1 if probability > 0.6, else 1)
+- Evaluated via confusion matrix and misclassification error rate on both an internal test split and two held-out external test sets
 
 ---
 
